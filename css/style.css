@@ -1,0 +1,220 @@
+/* Estilos de la maquetación */
+
+body {
+	margin-left: -2px;
+	margin-right: -2px;
+	padding: auto;
+}
+
+.titulo{
+	color: #F9FAF4
+}
+
+header {
+	background : #E4A304;
+	height: 100px;
+	text-align: center;
+	grid-column: 1 / 11;
+	font-family: sans-serif;
+  margin: -10px auto;
+
+}
+
+p{
+	font-family: "Segoe UI";
+  margin-left: 100px;
+	margin-right: 100px;
+}
+
+h3{
+	color:#10187E;
+}
+h1{
+	color:#FFFFFF
+}
+.autor{
+	background-color: #0C0C44;
+}
+
+img{
+  display: block;
+  margin:0 auto;
+  max-width: 40%;
+  height:auto;
+  width: auto;
+  margin-bottom: -4px;
+}
+
+
+
+  #logo img{
+  margin:10px;
+	margin-right: 40px;
+	margin-left: 40px;
+  float: right;
+  width:100px;
+	max-width: 100%;
+}
+
+
+header h1 {
+	margin-block-start: 0;
+    margin-block-end: 0;
+}
+
+.contenedor {
+	display: grid;
+	grid-template-columns: repeat(10, 1fr);
+}
+
+
+section {
+	grid-column: 1 / 8;
+  	grid-row: 3;
+}
+
+
+
+/*
+section {
+	width: 70%;
+	float: left;
+}
+
+aside {
+	width: 30%;
+	float: left;
+	background-color: #336655;
+}
+*/
+footer {
+	background-color: #0D807E;
+	color: white;
+	height: 80px;
+	text-align: center;
+	clear: both;
+	grid-column: 1 / 11;
+}
+
+
+/* Estilos de la barra de navegación */
+
+nav {
+	height: 44px;
+	background-color: #355891;
+	grid-column: 1 / 11;
+}
+
+nav>ul {
+	list-style-type: none;
+	margin: 0px;
+	padding: 0px;
+}
+
+nav>ul>li {
+	float: left;
+}
+
+
+nav>ul>li>a {
+	padding: 12px;
+	color: #FEFEFE;
+	text-decoration: none;
+	display: block;
+	background-color: #355891;
+	font-family: "Homer Simpson UI"
+
+}
+
+nav>ul>li>a:hover {
+
+
+
+}
+
+
+/* Modificadores de texto */
+
+#idea {
+	color: white;
+}
+
+.principal {
+	color: red;
+}
+
+.centrado {
+	text-align: center;
+	color: blue;
+}
+
+img {
+	border-radius: 20px;
+	margin: auto;
+	display: block;
+	width: 100%;
+}
+
+
+
+
+img + p {
+	font-size: 0.8em;
+	color: #333;
+	font-style: italic;
+	margin-top: 0px;
+
+}
+
+img + p:before {
+	content: "Imagen ";
+}
+
+img + p>span:after {
+	content: " - ";
+}
+
+img + p>span:before {
+	content: "#";
+}
+
+img:hover + p {
+	color: red;
+}
+
+/*
+.piedeimagen {
+	font-size: 0.8em;
+	color: #333;
+	font-style: italic;
+	margin-top: 0px;
+}
+*/
+
+
+a[href="#"] {
+	background-color: gray;
+	display: none;
+}
+
+
+@media screen and (max-width: 600px) {
+	header{
+		background-color: black;
+		color: white;
+	}
+
+	section {
+		grid-column: 1 / 11;
+		grid-row: 4;
+	}
+
+	aside {
+		grid-column: 1 / 11;
+		grid-row: 3;
+	}
+
+	footer {
+		grid-row: 5;
+	}
+}
