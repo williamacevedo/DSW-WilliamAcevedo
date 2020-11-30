@@ -1,0 +1,18 @@
+( function($) {
+    $(document).ready(function() {
+
+
+      $(".toggle-to-secondary").on("click", function(e) {
+
+        var $wrapper = $(this).parents(".toggle-content");
+
+        $wrapper.find(".toggle-content__primary").hide();
+        $wrapper.find(".toggle-content__secondary").show();
+
+        $wrapper.find(".toggle-content__secondary :text").focus();
+
+      });
+
+
+    });
+})(jQuery);

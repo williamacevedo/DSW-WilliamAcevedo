@@ -1,0 +1,259 @@
+var urlActividad;
+var likeActivado = false;
+
+$(document).ready(function(){
+
+    urlActividad = $('#idAct').attr('data-url');
+
+    $("#openGclassroomNotPublishable").click(function() {
+        $("#shareMain").hide();
+        $("#gclassroomNotPublishable").show();
+    });
+
+    $("#closeGclassroomNotPublishable").click(function() {
+        $("#gclassroomNotPublishable").hide();
+        $("#shareMain").show();
+    });
+
+    $("#openMteamsNotPublishable").click(function() {
+        $("#shareMain").hide();
+        $("#mteamsNotPublishable").show();
+    });
+
+    $("#closeMteamsNotPublishable").click(function() {
+        $("#mteamsNotPublishable").hide();
+        $("#shareMain").show();
+    });
+
+    $(".mostrarPremium").click(function() {
+        $('#download-activity__content').hide();
+        $('#download-activity__msg').show();
+    });
+    
+
+    $("#buttonFav").click(function() {
+        if (!$("#favorites").prop("checked")) {
+            $.ajax({
+                url: urlActividad,
+                method: 'POST',
+                data: {
+                    action: "fav",
+                },
+            });
+            favoritoActivado = true;
+            $("#favorites").prop("checked",true);
+        }
+    });
+
+    $("#buttonComment").click(function() {
+        var comentario = $('#txtComment').val();
+        if (comentario != '') {
+            $.ajax({
+                url: urlActividad,
+                method: 'POST',
+                data: {
+                    action: "comment",
+                    comment: comentario,
+                },
+            }).done(function(datos) {
+                datos = JSON.parse(datos);
+                comentario = htmlentitites(replaceAll(comentario,"\n", "<br>"));
+                var bloque = $("#baseComentario").clone();
+                bloque.find('.comment__content').html(comentario);
+                bloque.find('.idDeleteComment').val(datos['id']);
+                $("#comment__list").prepend(bloque.html());
+                $('#txtComment').val('');
+                var cuantos = parseInt($('#countComments').attr('data-count'));
+                cuantos++;
+                $('#countComments').attr('data-count',cuantos);
+                $('#countComments').text(cuantos);
+                $('#countComments2').html('<span class="sup-badge sup-badge--animated"><span>' + cuantos  + '</span></span>');
+            });            
+        }
+    });
+
+    $("#shareFB").click(function(e) {
+        window.open($("#shareFB").attr('href'),'_blank',"width=600,height=400")
+        e.preventDefault();
+    });
+    
+    $("#shareTW").click(function(e) {
+        window.open($("#shareTW").attr('href'),'_blank',"width=600,height=400")
+        e.preventDefault();
+    });
+    
+    $(".buttonAnadirColeccion").click(function() {
+        var idColeccion = this.dataset.id;
+        if (!$("#buttonAnadirColeccion-" + idColeccion).prop("checked")) {
+            $.ajax({
+                url: urlActividad,
+                method: 'POST',
+                data: {
+                    action: "addColeccion",
+                    idColeccion: idColeccion,
+                },
+            });
+            $("#buttonAnadirColeccion-" + idColeccion).prop("checked",true);
+        }
+    });
+
+    $("#doBtnDescarga").click(function() {
+        var $dropdown = ($("#btnAdicional")).parent(".dropdown");
+        closeDropdown($dropdown);
+        launchDropDown($("#btnDescarga"));
+    }); 
+
+    $("#buttonNuevaColeccion").click(function() {
+        var name = $('#txtNuevaColeccion').val();
+        name = name.trim();
+        if (name != '') {
+            var name = $('#txtNuevaColeccion').val();
+            $.ajax({
+                url: urlActividad,
+                method: 'POST',
+                data: {
+                    action: "nuevaColeccion",
+                    name: name,
+                },
+            });
+            var bloque = $("#baseColeccion").clone();
+            bloque.find('.custom-input__text').html(name);
+            $("#listaColecciones").append(bloque.html());
+            $('#txtNuevaColeccion').val('');
+            var $wrapper = $(this).parents(".toggle-content");
+            $wrapper.find(".toggle-content__secondary").hide();
+            $wrapper.find(".toggle-content__primary").show();
+
+        }
+    }); 
+
+    try {
+        document.getElementById('notify-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var modal = $('[data-remodal-id=inappropiate-content]').remodal();
+            var textarea = document.getElementById('explanation');
+            var txt = textarea.value.trim();
+            if (txt != '') {
+
+                $.ajax({
+                    url: urlActividad,
+                    method: 'POST',
+                    data: {
+                        action: "inapropiado",
+                        txt: txt,
+                    },
+                });
+    
+                modal.close();
+                textarea.value = '';
+                
+                var msgInapropiado = $('#linkInapropiado').attr('data-txtOk');
+
+                setTimeout( function() {
+                    $.toast({
+                        text: msgInapropiado,
+                        icon: 'success',
+                    });
+                }, 200);
+            }
+        });
+    } catch(e) {
+    }
+
+    $(".formDeleteComment").submit(function(event) {
+        var txt = $('#idAct').attr('data-txtDeleteComment');
+        if (!confirm(txt)) {
+            event.preventDefault();
+        } 
+    });
+
+    var msg = $('#txtMsg').attr('data-msg');
+    if (msg != '') {
+      $.fn.infoToast({
+        message: msg,
+      });
+    }
+
+});
+
+function maximizar() {
+    $("#actividadIF").addClass('maximizado');
+}
+
+function minimizar() {
+    $("#actividadIF").removeClass('maximizado');
+}
+
+function finActividad() {
+    setTimeout(recargarScore,3000);
+}
+
+function recargarScore() {
+    var token = $('#datosGenerales').attr('data-tokenID');
+    if (token != '') {
+        var idioma = $('html').attr('lang');
+        var url = $('#idAct').attr('data-apiScore') + '?token=' + token;
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            headers: {
+                Accept: 'application/hal+json',
+                'Accept-Language': idioma
+            }
+        }).done(function(datos) {
+            var contenido = '';
+            var bloqueRank = $('#hiddenTemplatesRank').clone();
+            var rutaFiles = $('#datosGenerales').attr('data-files');
+            var rutaProfile = $('#idAct').attr('data-urlProfile');           
+            var rutaSinAvatar = $('#hiddenTemplatesRank .score-ranking__img').attr('src');
+            var posicion = 1;
+            datos['scores'].forEach(function(rank) {
+                bloqueRank.find('.score-ranking__position').html(posicion);
+                bloqueRank.find('.score-ranking__name').html(htmlentitites(rank['user']['nombre']));
+                bloqueRank.find('.score-ranking__time').html(formatTime(rank['time']));
+                bloqueRank.find('.score-ranking__score').html(rank['score']);
+                bloqueRank.find('.score-ranking__date').attr('datetime',tsToFecha(rank['ts']));
+                bloqueRank.find('.score-ranking__date').html(tsToFechaLarga(rank['ts'],idioma));
+                bloqueRank.find('.score-ranking__img').attr('alt',htmlentitites(rank['user']['nombre']));
+                if (rank['user']['foto'] == null) {
+                    bloqueRank.find('.score-ranking__img').attr('src',rutaSinAvatar);
+                } else {
+                    bloqueRank.find('.score-ranking__img').attr('src',rutaFiles + 'images/imagenes/' + rank['user']['foto']);
+                }
+                bloqueRank.find('a').attr('href',rutaProfile + rank['user']['slug']);               
+                contenido += bloqueRank.html();
+                posicion++;
+            });
+            if (posicion > 1) {
+                $('#ranking-list').html(contenido);
+                $('#noRanking').hide();
+                $('#ranking-list').show();
+                if (datos['myScore'] == undefined) {
+                    $('#myRanking').hide();
+                    $('#noMyRanking').show();
+                } else {
+                    var bloqueMyRank = $('#hiddenTemplatesMyRank').clone();
+                    bloqueMyRank.find('.score-ranking__name').html(htmlentitites(datos['myScore']['user']['nombre']));
+                    bloqueMyRank.find('.score-ranking__time').html(formatTime(datos['myScore']['time']));
+                    bloqueMyRank.find('.score-ranking__score').html(datos['myScore']['score']);
+                    bloqueMyRank.find('.score-ranking__date').attr('datetime',tsToFecha(datos['myScore']['ts']));
+                    bloqueMyRank.find('.score-ranking__date').html(tsToFechaLarga(datos['myScore']['ts'],idioma));
+                    bloqueMyRank.find('.score-ranking__img').attr('alt',htmlentitites(datos['myScore']['user']['nombre']));
+                    if (datos['myScore']['user']['foto'] == null) {
+                        bloqueMyRank.find('.score-ranking__img').attr('src',rutaSinAvatar);
+                    } else {
+                        bloqueMyRank.find('.score-ranking__img').attr('src',rutaFiles + 'images/imagenes/' + datos['myScore']['user']['foto']);
+                    }
+                    bloqueMyRank.find('a').attr('href',rutaProfile + datos['myScore']['user']['slug']);
+                    $('#myRanking').html(bloqueMyRank.html());
+                    $('#noMyRanking').hide();
+                    $('#myRanking').show();
+                }
+            } else {
+                $('#ranking-list').hide();
+                $('#myRanking').hide();
+                $('#noRanking').show();
+            }
+        });
+    }
+}

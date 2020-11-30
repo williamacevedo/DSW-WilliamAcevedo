@@ -1,0 +1,284 @@
+var scrollInicial = 150;
+var scrollMargen = 5;
+var scrollPos = 0;
+var scrollComprimido = false;
+
+$(document).ready(function(){
+
+	$('#buscadorTipo').change(function() {
+		var sugerencia = $('#buscadorTipo option:selected:first').attr('data-placeholder');
+		var accion = $('#buscadorTipo option:selected:first').attr('data-action');
+		var txt = $('#buscadorTipo option:selected:first').attr('data-txt');
+		$('#buscadorQ').attr('placeholder',sugerencia);
+		$('#buscadorForm').attr('action',accion);
+		$('#buscadorFormTodas').html(txt);
+		$('#buscadorFormTodas').attr('href',accion);
+	});
+
+	$('#idiomaSelect').change(function() {
+		$(location).attr('href',$('#idiomaSelect option:selected:first').attr('data-url'));
+	});
+
+	$(window).scroll(function() {
+		var scrollNuevo = $(window).scrollTop();
+		if ((scrollPos - scrollNuevo > scrollMargen) && (scrollComprimido)) {
+			scrollComprimido = false;
+			$('header').removeClass('header--comprimida');
+		}
+		if ((scrollNuevo - scrollPos > scrollMargen) && (!scrollComprimido) && (scrollPos > scrollInicial)) {
+			scrollComprimido = true;
+			$('header').addClass('header--comprimida');
+		}
+		scrollPos = scrollNuevo;
+	});
+
+
+	/**
+	 * Toast 
+	 * @param {Object} options - Objeto de configuración
+	 * @param {String} options.message - Texto del mensaje
+	 * @param {String} options.type - Tipo de toast añade una clase para la personalización '.toast__{type}'
+	 * @param {Number} options.timer - Tiempo visible del toast
+	 */
+    $.fn.infoToast = function(options) {
+        var settings = $.extend({
+            type: 'normal',
+            message: '',
+            timer: 4000
+        }, options);
+
+      $('body').append(
+            '<div class="toast '+ "toast--"+ settings.type + '" role="alert" aria-live="assertive">' +
+                '<button class="toast__close">' +
+                    '<span aria-hidden="true">&times;</span>'+
+                '</button>'+
+            '<div class="toast__body">'+ settings.message +'</div></div>'
+        );
+
+        setTimeout(removeToast, settings.timer);
+
+    }
+    
+    function removeToast() {
+        $('.toast').fadeOut(300, function(){
+            $(this).remove();
+        })
+    }
+
+	$(document).on('click', '.toast', removeToast);
+	
+	$(".alert__close").click(function() {
+		$('.alert').hide();
+	});
+
+});
+
+function numberFormat(numero,decimales) {
+	locale = $('body').attr('data-locale');
+	return numero.toLocaleString(locale, {minimumFractionDigits: decimales, maximumFractionDigits: decimales});
+}
+
+function acortarTexto(texto,longitud) {
+	resultado = texto.substring(0, longitud);
+	if (texto.length > longitud) {
+		resultado += '...';
+	}
+	return resultado;
+}
+
+function formatTime(segundos) {
+    var minutos = parseInt(segundos / 60);
+    segundos = segundos - (minutos * 60);
+    return ceroIzq(minutos,2) + ':' + ceroIzq(segundos,2);
+}
+
+function ceroIzq(numero,posiciones) {
+	numero = numero.toString();
+	while (numero.length < posiciones) {
+		numero = '0' + numero;
+	}
+	return numero;
+}
+
+function tsToFecha(ts) {
+	var fecha = new Date(ts * 1000);
+	return fecha.getFullYear() + '-' + ceroIzq(fecha.getMonth()+1,2) + '-' + ceroIzq(fecha.getDate(),2);
+}
+
+function tsToFechaLarga(ts,idioma) {
+	var fecha = new Date(ts * 1000);
+	var mes = nombreMes(fecha.getMonth()+1,idioma);
+	switch (idioma) {
+	case 'es':
+		return fecha.getDate() + ' de ' + mes + ' de ' + fecha.getFullYear();
+		break;
+	case 'fr':
+		return fecha.getDate() + ' ' + mes + ' ' + fecha.getFullYear();
+		break;
+	default:
+		return mes + ' ' + fecha.getDate() + ', ' + fecha.getFullYear();
+	}
+}
+
+function nombreMes(mes,idioma) {
+	switch (idioma) {
+	case 'es':
+		switch (mes) {
+		case 1:
+			return 'Enero';
+			break;
+		case 2:
+			return 'Febrero';
+			break;
+		case 3:
+			return 'Marzo';
+			break;
+		case 4:
+			return 'Abril';
+			break;
+		case 5:
+			return 'Mayo';
+			break;
+		case 6:
+			return 'Junio';
+			break;
+		case 7:
+			return 'Julio';
+			break;
+		case 8:
+			return 'Agosto';
+			break;
+		case 9:
+			return 'Septiembre';
+			break;
+		case 10:
+			return 'Octubre';
+			break;
+		case 11:
+			return 'Noviembre';
+			break;
+		case 12:
+			return 'Diciembre';
+			break;
+		}
+		break;
+	case 'fr':
+		switch (mes) {
+		case 1:
+			return 'Janvier';
+			break;
+		case 2:
+			return 'Février';
+			break;
+		case 3:
+			return 'Mars';
+			break;
+		case 4:
+			return 'Avril';
+			break;
+		case 5:
+			return 'Mai';
+			break;
+		case 6:
+			return 'Juin';
+			break;
+		case 7:
+			return 'Juillet';
+			break;
+		case 8:
+			return 'Août';
+			break;
+		case 9:
+			return 'Septembre';
+			break;
+		case 10:
+			return 'Octobre';
+			break;
+		case 11:
+			return 'Novembre';
+			break;
+		case 12:
+			return 'Décembre';
+			break;
+		}
+		break;
+	default:
+		switch (mes) {
+		case 1:
+			return 'January';
+			break;
+		case 2:
+			return 'February';
+			break;
+		case 3:
+			return 'March';
+			break;
+		case 4:
+			return 'April';
+			break;
+		case 5:
+			return 'May';
+			break;
+		case 6:
+			return 'June';
+			break;
+		case 7:
+			return 'July';
+			break;
+		case 8:
+			return 'August';
+			break;
+		case 9:
+			return 'September';
+			break;
+		case 10:
+			return 'October';
+			break;
+		case 11:
+			return 'November';
+			break;
+		case 12:
+			return 'December';
+			break;
+		}
+	}
+}
+
+function replaceAll(texto,busqueda,reemplazo) {
+	while (texto.indexOf(busqueda) != -1) {
+		texto = texto.replace(busqueda,reemplazo);
+	}
+	return texto;
+}
+
+function htmlentitites(texto) {
+	texto = replaceAll(texto,'&','###amp;');
+	texto = replaceAll(texto,'###amp;','&amp;');
+	texto = replaceAll(texto,'<','&lt;');
+	texto = replaceAll(texto,'>','&gt;');
+	texto = replaceAll(texto,'"','&quot;');
+	return texto;
+}
+
+function html_entity_decode(texto) {
+	texto = replaceAll(texto,'&amp;','######AMP######');
+	texto = replaceAll(texto,'######AMP######','&');
+	texto = replaceAll(texto,'&lt;','<');
+	texto = replaceAll(texto,'&gt;','>');
+	texto = replaceAll(texto,'&quot;','"');
+	return texto;
+}
+
+function sendClientEvent(event,data) {
+	var url = 'https://' + window.location.host + '/clientEvent/';
+	$.ajax({
+		url : url,
+		type: "POST",
+		data : {
+			event: event,
+			data: data
+		},
+		dataType: 'json',
+		cache: false	
+	});
+}

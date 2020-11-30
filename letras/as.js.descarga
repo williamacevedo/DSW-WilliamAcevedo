@@ -1,0 +1,16 @@
+var nonPersonalizedAds = $('#datosGenerales').attr('data-nonPersonalizedAds');
+(adsbygoogle=window.adsbygoogle||[]).requestNonPersonalizedAds=nonPersonalizedAds;
+
+$(document).ready(function(){
+
+	comprobarAs();
+
+});
+
+function comprobarAs() {
+	if($(".bloqueAnu").find("ins").attr('data-adsbygoogle-status') == 'done') {
+		$(".anuncioAlt").hide();
+	} else {
+		setTimeout(comprobarAs,1000);
+	}
+}

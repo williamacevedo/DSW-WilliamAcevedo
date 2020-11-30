@@ -1,0 +1,140 @@
+
+(function(document, window, $) {
+  "use strict";
+  
+  var requestAnimationFrame =
+    window.requestAnimationFrame ||
+    window.mozRequestAnimationFrame ||
+    window.webkitRequestAnimationFrame ||
+    window.msRequestAnimationFrame;
+  window.requestAnimationFrame = requestAnimationFrame;
+
+  var ACTIVE_CLASS = "is-actived"; 
+  var MATCH_MEDIA_MEDIUM = window.matchMedia("(min-width: 1024px) and (max-width: 1279px)");
+
+var ua = navigator.userAgent.toLowerCase(); 
+var SUPPORT_GRID;
+
+if (ua.indexOf('safari') != -1 && ua.indexOf('chrome') == -1) { 
+  SUPPORT_GRID = true;
+} else if ( ua.indexOf("trident") != -1){
+  SUPPORT_GRID = false;
+} else {
+   SUPPORT_GRID = CSS.supports("display: grid");
+}
+
+
+
+
+  var $tabList = null,
+      $tabListItems = null,
+      $allTabs = null,
+      $tabPanels = null;
+
+  var setupTabs = function($tab, $allTabs, $tabPanels, $tabListItems, i) {
+    $tab.attr({
+      id: "section-tab-link-" + i,
+      role: "tab",
+      "aria-controls": "section-tab-content-" + i
+    });
+
+
+    $tab.on("click", function(e) {
+      e.preventDefault();
+  
+      tabClick($(this), $allTabs, $tabPanels, i);
+    });
+
+  };
+
+  var setupTabPanels = function(tabPanel, i) {
+    tabPanel.attr({
+      id: "section-tab-content-" + i,
+      role: "tabpanel",
+      "aria-labelledby": "section-tab-link-" + i
+    });
+
+  };
+
+  var tabClick = function($thisTab, $allTabs, $tabPanels, i) {
+    $allTabs
+      .attr({"aria-selected": "false"})
+      .removeClass(ACTIVE_CLASS);
+
+    $thisTab
+      .attr({ "aria-selected": "true"})
+      .addClass(ACTIVE_CLASS);
+
+    $tabPanels
+      .removeClass(ACTIVE_CLASS);
+
+    $tabPanels
+      .eq(i)
+      .addClass(ACTIVE_CLASS);
+  };
+
+  var checkTabsActived = function() {
+
+    if (!$allTabs || $allTabs.length === 0) return;
+
+    if (MATCH_MEDIA_MEDIUM.matches && SUPPORT_GRID) {
+      $allTabs[1].click();
+    } else {
+      $allTabs[0].click();
+    } 
+  }
+
+
+  function init() {
+
+    $tabList = $(".sections-tabs");
+    $tabListItems = $tabList.find("li");
+    $allTabs = $tabListItems.find("a");
+    $tabPanels = $(".sections-tabs__content");
+
+    $tabList.attr("role", "tablist");
+    $tabListItems.attr("role", "presentation");
+
+
+    $allTabs.each(function(i) {
+      setupTabs($(this), $allTabs, $tabPanels, $tabListItems, i);
+    });
+
+    $tabPanels.each(function(i) {
+      setupTabPanels($(this), i);
+    });
+
+
+    checkTabsActived();
+
+  }
+
+  init();
+
+
+  var throttle = function(type, name) {
+
+    var running = false;
+    var func = function() {
+      if (running) {
+        return;
+      }
+      running = true;
+      requestAnimationFrame(function() {
+        dispatchEvent(new CustomEvent(name));
+        running = false;
+      });
+    };
+    addEventListener(type, func);
+  };
+
+  throttle("resize", "optimizedResize");
+
+
+// handle event
+window.addEventListener("optimizedResize", function() {
+
+  checkTabsActived();
+});
+
+})(document, window, jQuery);

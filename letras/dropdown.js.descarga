@@ -1,0 +1,76 @@
+(function($){
+
+  var is_closing = false;
+  var $dropdownOpen = null;
+
+  $(".dropdown__btn").on("click", function(e) {
+    e.preventDefault();
+    if(is_closing) return ;
+
+    launchDropDown(this);
+  });
+
+  $(document).on("click", function(e) {
+    if ($dropdownOpen && $(e.target).parents('.dropdown').length === 0 ) {
+      closeDropdownAnimated();
+    }
+  });
+  
+  $(document).on("keyup", function(e) {
+    if (e.keyCode === 27) {
+        closeDropdownAnimated();
+    }
+  });
+
+
+  function launchDropDown(obj) {
+
+    var $dropdown = $(obj).parent(".dropdown");
+    if ($dropdown.hasClass("is-opened")) {
+      closeDropdownAnimated();
+    } else {
+      openDropDown($dropdown);
+    }
+  }
+
+  function closeDropdown() {
+    if(!$dropdownOpen) return;
+    
+    $dropdownOpen.removeClass("is-opened");
+    $dropdownOpen.find(".dropdown__btn").removeAttr("aria-expanded");
+    $dropdownOpen.find(".dropdown__content").attr("aria-hidden", "true");
+    $dropdownOpen.find(".dropdown__content").hide();
+
+    $dropdownOpen = null;
+  }
+
+  function closeDropdownAnimated() {
+    $dropdownOpen.removeClass("is-opened");
+    if(is_closing) return ;
+    
+    is_closing = true;
+
+    $dropdownOpen.find(".dropdown__content").one("transitionend", function() {
+      $dropdownOpen.find(".dropdown__btn").removeAttr("aria-expanded");
+      $dropdownOpen.find(".dropdown__content").attr("aria-hidden", "true");
+      $dropdownOpen.find(".dropdown__content").hide();
+
+      is_closing = false;
+      $dropdownOpen = null;
+      
+    });
+  }
+
+  function openDropDown($dropdown) {
+    closeDropdown();
+
+    $dropdownOpen = $dropdown;
+    
+    $dropdown.addClass("is-opened");
+    $dropdown.find(".dropdown__content").show();
+    $dropdown.find(".dropdown__btn").attr("aria-expanded", "true");
+    $dropdown.find(".dropdown__content").removeAttr("aria-hidden");
+
+  }
+
+})(jQuery);

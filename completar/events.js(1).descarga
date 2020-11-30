@@ -1,0 +1,596 @@
+//==========================================================================================================================
+//Funciones que vamos a utilizar cuando el usuario comienza a interactuar con esta aplicacion (Propio de Completar)
+//==========================================================================================================================
+
+//Oculta la parte de presentación de instrucciones y accede a la aplicacion
+
+    function comenzar()
+    {	
+     	$('#contentPreActividad').hide();
+     	$('#contentAct').css('top',0);
+		
+		//Lanzamos el contador de tiempo
+		idInterval = setInterval(contador,1000);
+   	}
+   	
+//Redimensionamos la aplicacion al cambiar de tamaño la pantalla
+
+	function redimensionar()
+	{	
+		//Reinicializamos la descripción Inicial de Usuario
+		cargarDescripcionInicio();
+	}
+
+//Funciones para "clickar" -----------------------------------------------------------------------------------------------------	
+
+//Movemos la palabra al lugar que le corresponde cuando hacemos click sobre ellas
+//En esta variable controlamos que elementos estan ya colocados en los huecos y en que orden
+var control = [];
+
+	function mover(ev)
+	{	
+		var encontrado = 0;
+		var mueveId = ev.target.getAttribute('id');
+		var mueveEle = document.getElementById(mueveId);
+		var mueveCad = mueveId.substring(11,14);
+	
+		for(i=0;i<control.length;i++)
+		{
+			//En este caso, la palabra ya esta colocada y la devolvemos a su posicion de disponible
+			if(control[i] == mueveId)
+			{
+				//La colocamos en su sitio dentro de las palabras disponibles
+				$(mueveEle).insertBefore("#cajaPalabraFondo"+mueveCad);
+				$(mueveEle).addClass("cajaPalabras");
+				control[i] = "";
+				encontrado = 1;
+			}
+		}
+	
+		//En este caso, colocamos la palabra en el siguiente hueco disponible
+		if(encontrado == 0)
+		{
+			var cantidad = control.length;
+		
+			for(i=0;i<cantidad;i++)
+			{
+				if(control[i] == "")
+				{
+					cantidad = i;
+					break;
+				}
+			}
+	
+			if(cantidad<10) var cantidadx = "00"+cantidad;
+			else if(cantidad<100) var cantidadx = "0"+cantidad;
+			else var cantidadx = cantidad;
+			
+			$("#hueco"+cantidadx).append(mueveEle).addClass("huecosContenido");
+			$(mueveEle).removeClass("cajaPalabras");
+			control[cantidad] = mueveId;
+			cantidad++;
+		}
+		
+		//Devolvemos a su estado inicial los huecos que se quedan vacios
+		for(p=0;p<pa.length;p++)
+		{
+			if(p<10) var px = "00"+p;
+			else if(p<100) var px = "0"+p;
+			else px = p;	
+			
+			if(!$("#hueco"+px).find("div").html()) $("#hueco"+px).removeClass("huecosContenido").removeClass("malP");
+		}
+	}
+
+
+//Funciones para "escribir" -----------------------------------------------------------------------------------------------------
+	
+//Comprobamos la palabra escrita y en caso de error lo marcamos
+//Variables necesarias para el control de los elementos del hueco
+var controlP = [];
+var controlH = [];
+
+	function compruebaPalabraEscribir()
+	{	
+		//Creamos una copia de las palabras para trabajar con ellas y que no afecte al array original
+		var pal = [];
+		for(m=0;m<pa.length;m++)
+		{
+			pal[m] = pa[m];
+		}
+		
+        var contenido = $(this).val();
+						
+		if(sensible_mayusculas == "no")
+		{	 
+			contenido = contenido.toUpperCase();
+			for(u=0;u<pal.length;u++)
+			{
+				pal[u] = pal[u].toUpperCase();
+			}
+		}
+
+		if(sensible_acentos == "no")
+		{	 
+			contenido = borraAcentos(contenido);
+			for(c=0;c<pal.length;c++)
+			{
+				pal[c] = borraAcentos(pal[c]);
+			}
+		}
+	   
+		var encontrado = 0;
+		for(j=0;j<pal.length;j++)
+		{
+			if(contenido == pal[j])
+			{
+				encontrado = 1;
+			}
+		}
+        
+        if(encontrado == 0 && contenido != "")
+		{
+			$(this).addClass("malP");
+		}
+		
+		//Actualizamos las palabras que ya estan usadas en la parte de palabras disponibles
+		controlL = [];
+		controlH = [];
+		$(".cajaPalabras").removeClass("used");
+		for (m=0;m<pal.length;m++)
+		{
+			if(m<10) var mx = "00"+m;
+			else if(m<100) var mx = "0"+m;
+			else mx = m;
+		
+			for(p=0;p<pal.length;p++)
+			{
+				if(p<10) var px = "00"+p;
+				else if(p<100) var px = "0"+p;
+				else px = p;
+			
+				if(controlH[p] == 1) continue;
+			
+				contenidoC = $("#hueco"+px).val();
+				respuestaC = $("#cajaPalabra"+mx).html();
+				
+				if (contenidoC == "&nbsp;") contenidoC = " ";
+			
+				if(sensible_mayusculas == "no")
+				{		 
+					contenidoC = contenidoC.toUpperCase();
+					respuestaC = respuestaC.toUpperCase();
+				}
+		
+				if(sensible_acentos == "no")
+				{		 
+					contenidoC = borraAcentos(contenidoC);
+					respuestaC = borraAcentos(respuestaC);
+				}
+				
+				if(respuestaC == contenidoC)
+				{
+					if(controlL[m] != 1)
+					{
+						$("#cajaPalabra"+mx).addClass("used");
+						controlL[m] = 1;
+						controlH[p] = 1;
+					}
+				}
+			}
+		}
+	}
+	
+//Al focalizar el hueco quitamos la clase de error    
+    
+    function borraOnFocus()
+    {
+        $(this).removeClass("malP");
+    }
+    
+//En caso de que la aplicacion no sea sensible a acentos, eliminamos los acentos antes de comparar las cadenas
+	
+	function borraAcentos(cadenaQuitar) 
+	{  
+     	var conAcentos= "áàãâäéèêëíìîïóòõôöúùûüçÁÀÃÂÄÉÈÊËÍÌÎÏÓÒÕÖÔÚÙÛÜÇ";  
+        var sinAcentos = "aaaaaeeeeiiiiooooouuuucAAAAAEEEEIIIIOOOOOUUUUC";  
+        var nueva = "";
+        var encontrada = 0;
+        for(i=0;i<cadenaQuitar.length;i++) 
+        {	
+        	encontrada = 0;  
+        	for(j=0;j<conAcentos.length;j++)
+        	{
+             	if(cadenaQuitar[i] == conAcentos[j])
+                {
+                	nueva += sinAcentos[j];
+                	encontrada = 1;
+                	break;
+                } 
+       		}
+       		if(encontrada == 0) nueva += cadenaQuitar[i]; 	  
+    	}
+     	return nueva;   
+ 	} 
+
+
+//Funciones generales -----------------------------------------------------------------------------------------------------------
+
+//Actualizamos los intentos
+	
+	function actualizarIntentos()
+	{
+		var cadenaIntentos = $('#numIntentos').text();
+		var pos = cadenaIntentos.indexOf("/");
+		var numeroIntentos = parseInt(cadenaIntentos.substring(0,pos+1));
+		if(numeroIntentos <= numero_intentos-1)
+		{
+			numeroIntentos++;
+			cadenaIntentos = numeroIntentos+"<sup>/"+numero_intentos+"</sup>";
+			$('#numIntentos').html(cadenaIntentos);
+			$('#cajaIntentos').addClass('alertLuz');
+			setTimeout(function(){$('#cajaIntentos').removeClass('alertLuz');},1000);
+		}
+		
+		if(numeroIntentos == numero_intentos)
+		{
+			$('#btnComprobar').unbind("click");
+            for(k=0;k<pa.length;k++)
+        		{
+        			if(k<10) var kx = "00"+k;
+        			else if(k<100) var kx = "0"+k;
+        			else kx = k;
+        			
+        			if(forma_completar == "escribir") contenido = $("#hueco"+kx).val();
+        			else if(forma_completar == "clickar") contenido = $("#hueco"+kx).find("div").html();
+        			respuestaF = pa[k];
+        				
+        			if(forma_completar == "escribir")
+        			{
+        				if(sensible_mayusculas == "no")
+        				{ 
+        					contenido = contenido.toUpperCase();
+        					respuestaF = respuestaF.toUpperCase();
+        				}
+        		
+        				if(sensible_acentos == "no")
+        				{	 
+        					contenido = borraAcentos(contenido);
+        					respuestaF = borraAcentos(respuestaF);
+        				}
+        			}
+        			else
+        			{
+        				if(contenido != undefined) contenido = contenido.toUpperCase();
+        				respuestaF = respuestaF.toUpperCase();
+        			}
+        				
+                	if(contenido != undefined){
+                	   contenido=contenido.toLowerCase()
+                	}
+                        if(respuestaF.toLowerCase()==contenido){
+                            exito=1
+                        }
+                        else{
+                            exito=0
+                        }
+                        if(contenido == undefined){
+                            contenido=""
+						}
+						setDatosRespuestas(k,contenido,exito);
+        		}
+			cargarPantallaFinal('intentos',getDatosRespuestas(0));
+		}
+		else{
+			for(k=0;k<pa.length;k++)
+        		{
+        			if(k<10) var kx = "00"+k;
+        			else if(k<100) var kx = "0"+k;
+        			else kx = k;
+        			
+        			if(forma_completar == "escribir") contenido = $("#hueco"+kx).val();
+        			else if(forma_completar == "clickar") contenido = $("#hueco"+kx).find("div").html();
+        			respuestaF = pa[k];
+        				
+        			if(forma_completar == "escribir")
+        			{
+        				if(sensible_mayusculas == "no")
+        				{ 
+        					contenido = contenido.toUpperCase();
+        					respuestaF = respuestaF.toUpperCase();
+        				}
+        		
+        				if(sensible_acentos == "no")
+        				{	 
+        					contenido = borraAcentos(contenido);
+        					respuestaF = borraAcentos(respuestaF);
+        				}
+        			}
+        			else
+        			{
+        				if(contenido != undefined) contenido = contenido.toUpperCase();
+        				respuestaF = respuestaF.toUpperCase();
+        			}
+        				
+                	if(contenido != undefined){
+                	   contenido=contenido.toLowerCase()
+                	}
+
+                        if(respuestaF.toLowerCase()==contenido){
+                            exito=1
+                        }
+                        else{
+                            exito=0
+                        }
+                        if(contenido == undefined){
+                            contenido=""
+						}
+						setDatosRespuestas(k,contenido,exito);
+        		}
+		}
+	}
+	
+//Actualizar puntos en funcion de los fallos
+var puntosReg = 100;
+var arrayDescuento = [];
+
+	function actualizaPuntos(tipo)
+	{
+	    //Inicializamos el array de descuentos si no esta inicializado
+	    if(arrayDescuento.length == 0)
+        {
+            for(k=0;k<=pa.length-1;k++)
+            {
+                arrayDescuento[k] = 0;
+            }
+        }
+        
+		var actuales = parseInt(puntosReg);
+        var puntosPorPalabra = 100/pa.length;
+        for(i=0;i<=controlCorreccion.length-1;i++)
+        {
+            if(controlCorreccion[i]==0)
+            {
+                if(tipo == "tiempo") arrayDescuento[i] = puntosPorPalabra;
+                else arrayDescuento[i] += puntosPorPalabra/numero_intentos;   
+            } 
+        }
+        var totalDescuento = 0;
+        for(j=0;j<=arrayDescuento.length-1;j++)
+        {
+            totalDescuento += arrayDescuento[j];
+        }
+        
+		var cantidadActual =  100 - totalDescuento;
+		if(cantidadActual < 0) cantidadActual = 0;
+		puntosReg = parseInt(cantidadActual);
+		$("#numPuntos").html(parseInt(cantidadActual));
+	}
+
+//Corregios la solucion que ha propuesto el usuario
+var controlCorreccion = [];
+
+	function compruebaTexto(op)
+	{	
+		//Comprobar si el contenido introducido es el correcto
+		var error = 0;
+		var contenido = "";
+		
+		for(k=0;k<pa.length;k++)
+		{
+			if(k<10) var kx = "00"+k;
+			else if(k<100) var kx = "0"+k;
+			else kx = k;
+			
+			if(forma_completar == "escribir") contenido = $("#hueco"+kx).val();
+			else if(forma_completar == "clickar") contenido = $("#hueco"+kx).find("div").html();
+			respuestaF = pa[k];
+				
+			if(forma_completar == "escribir")
+			{
+				if(sensible_mayusculas == "no")
+				{ 
+					contenido = contenido.toUpperCase();
+					respuestaF = respuestaF.toUpperCase();
+				}
+		
+				if(sensible_acentos == "no")
+				{	 
+					contenido = borraAcentos(contenido);
+					respuestaF = borraAcentos(respuestaF);
+				}
+			}
+			else
+			{
+				if(contenido != undefined) contenido = contenido.toUpperCase();
+				respuestaF = respuestaF.toUpperCase();
+			}
+				
+			if(respuestaF != contenido)
+			{
+				controlCorreccion[k] = 0;
+				if(forma_completar == "escribir"){
+                    if($("#hueco"+kx).val() != "") $("#hueco"+kx).addClass("malP");
+                }
+                else{
+                    if($("#hueco"+kx).html() != "") $("#hueco"+kx).addClass("malP");
+                }
+				error = 1;
+			}
+			else
+			{
+				controlCorreccion[k] = 1;
+				if(forma_completar == "escribir"){
+                    if($("#hueco"+kx).val() != "") $("#hueco"+kx).addClass("bienP");
+                }
+                else{
+                    if($("#hueco"+kx).html() != "") $("#hueco"+kx).addClass("bienP");
+                }
+			}
+        	if(contenido != undefined){
+        	   contenido=contenido.toLowerCase()
+        	}
+
+			if(respuestaF.toLowerCase()==contenido){
+				exito=1
+			}
+			else{
+				exito=0
+			}
+           
+		}
+		
+		//Si hay errores, actualizamos los puntos y los intentos		
+		if(error == 1)
+		{
+			if(op != "finIntentos")
+			{
+                if(op != "finTiempo")
+                {
+                    actualizaPuntos();   
+                }
+                else
+                {
+                    actualizaPuntos("tiempo"); 
+                }
+                actualizarIntentos();   
+			}
+		}
+		//Sino, desabilitamos el boton de comprobar, y mostramos la pantalla de final 
+		else if(error == 0)
+		{
+		  
+			$('#btnComprobar').unbind("click");
+            for(k=0;k<pa.length;k++)
+        		{
+        			if(k<10) var kx = "00"+k;
+        			else if(k<100) var kx = "0"+k;
+        			else kx = k;
+        			
+        			if(forma_completar == "escribir") contenido = $("#hueco"+kx).val();
+        			else if(forma_completar == "clickar") contenido = $("#hueco"+kx).find("div").html();
+        			respuestaF = pa[k];
+        				
+        			if(forma_completar == "escribir")
+        			{
+        				if(sensible_mayusculas == "no")
+        				{ 
+        					contenido = contenido.toUpperCase();
+        					respuestaF = respuestaF.toUpperCase();
+        				}
+        		
+        				if(sensible_acentos == "no")
+        				{	 
+        					contenido = borraAcentos(contenido);
+        					respuestaF = borraAcentos(respuestaF);
+        				}
+        			}
+        			else
+        			{
+        				if(contenido != undefined) contenido = contenido.toUpperCase();
+        				respuestaF = respuestaF.toUpperCase();
+        			}
+        				
+                	if(contenido != undefined){
+                	   contenido=contenido.toLowerCase()
+                	}
+                        if(respuestaF.toLowerCase()==contenido){
+                            exito=1
+                        }
+                        else{
+                            exito=0
+                        }
+                        if(contenido == undefined){
+                            contenido=""
+						}
+						setDatosRespuestas(k,contenido,exito);
+        		}
+			cargarPantallaFinal('OK',getDatosRespuestas(1));
+		}
+	}
+	
+//Completamos la pantalla final con la corrección de la palabra
+
+	function completarPantallaFinal()
+	{	
+		//Montamos la cadena de texto con los huecos necesarios
+		var cadena = "";
+		var posicion = 0;
+		for(j=0;j<pa.length;j++)
+		{
+			if(j<10) var jx = "00"+j;
+			else if(j<100) var jx = "0"+j;
+			else var jx = j;
+			
+			cadena += texto.substring(posicion,pos[j]);
+			posicion = pos[j] + pa[j].length;
+			cadena += "<div id='cuadroFinalC"+jx+"' class='cuadroPalabras'>";
+			if((controlCorreccion[j] == 0)||(controlCorreccion[j] == undefined))
+			{
+				cadena += "<div id='cuadroFinalE"+jx+"' class='palabraCorreccion'></div>";
+			}
+			cadena += "<div id='cuadroFinalR"+jx+"' class='cajaPalabras'></div>";
+			cadena += "</div>";
+		}
+		cadena += texto.substring(posicion,texto.length);
+		
+		cadena = cadena.replace(new RegExp('\\n','g'),'<br>');
+		$('#correccion').html(cadena);	
+		
+		cargarFinal();
+	}
+
+//Cargamos el resultado en la pantalla final	
+	
+	function cargarFinal()
+	{
+		for(i=0;i<pa.length;i++)
+		{
+			if(i<10) var ix = "00"+i;
+			else if(i<100) var ix = "0"+i;
+			else var ix = i;
+			
+			if((controlCorreccion[i] == 0)||(controlCorreccion[i] == undefined))
+			{
+				if(forma_completar == "escribir") contenido = $("#hueco"+ix).html();
+				else if(forma_completar == "clickar") contenido = $("#hueco"+ix).find("div").html();
+				$('#cuadroFinalE'+ix).html(contenido);
+			}
+			else
+			{
+				$('#cuadroFinalC'+ix).addClass("finalBien");
+			}
+			
+			$('#cuadroFinalR'+ix).html(pa[i]);
+		}
+	}
+
+	var datosRespuestas = [];
+	var datosRespuestasPosicion = 0;
+
+	function setDatosRespuestas(indice,contenido,exito) {
+		datosRespuestas[datosRespuestasPosicion] = {};
+		datosRespuestas[datosRespuestasPosicion]['s'] = exito;
+		datosRespuestas[datosRespuestasPosicion]['i'] = indice;
+		datosRespuestas[datosRespuestasPosicion]['a'] = contenido;
+		datosRespuestasPosicion++;
+	}
+
+	function getDatosRespuestas(s) {
+		var datos = {};
+		datos['m'] = {};
+		datos['m']['s'] = s;
+		datos['r'] = datosRespuestas;
+		return datos;
+	}
+
+	function actualizaPuntosFinal(tipoAlerta) {
+		switch (tipoAlerta) {
+		case 'tiempo':
+			compruebaTexto("finTiempo");
+			break;
+		case 'intentos':
+			compruebaTexto("finIntentos");
+			break;
+		}
+	}

@@ -1,0 +1,134 @@
+//==========================================================================================================================
+//Funciones que vamos a utilizar para crear nuestra aplicacion (Propio de Completar)
+//==========================================================================================================================
+
+//En esta variable almacenaremos el intervalo de tiempo
+var idInterval = 0;
+//Limite de huecos permitidos
+var limiteHuecos = 1000;
+
+//Creamos la aplicacion de completar
+
+	function crear()
+	{	
+		for(i=0;i<pa.length;i++)
+		{
+			if(i<10) var ix = "00"+i;
+			else if(i<100) var ix = "0"+i;
+			else var ix = i;
+			
+			//Creamos el cuadro para las cajas de las palabras		
+			var divCuadro = $("<div>",
+			{
+				id: "cuadro"+ix,
+				"class": "cuadroPalabras"
+			});
+			$('#palabrasDisponibles').append(divCuadro);
+			
+			//Creamos la caja donde ira la palabra		
+			var divPalabra = $("<div>",
+			{
+				id: "cajaPalabra"+ix,
+				"class": "cajaPalabras res"
+			});
+			$('#cuadro'+ix).append(divPalabra);
+			
+			//Si NO es de escribir, duplicamos la caja, para mantener el espacio al mover las cajas
+			if(forma_completar != "escribir")
+			{
+				var divPalabra = $("<div>",
+				{
+					id: "cajaPalabraFondo"+ix,
+					"class": "cajaPalabras pFondo"
+				});
+				$('#cuadro'+ix).append(divPalabra);
+			}
+		}
+		
+		//Montamos la cadena de texto con los huecos necesarios
+		var cadena = "";
+		var posicion = 0;
+		for(j=0;j<pa.length;j++)
+		{
+			if(j<10) var jx = "00"+j;
+			else if(j<100) var jx = "0"+j;
+			else var jx = j;
+			
+			cadena += texto.substring(posicion,pos[j]);
+			posicion = pos[j] + pa[j].length;
+			if(forma_completar == "escribir") cadena += "<input type='text' id='hueco"+jx+"' class='huecos'/>";
+            else cadena += "<div id='hueco"+jx+"' class='huecos'></div>";
+		}
+		cadena += texto.substring(posicion,texto.length);
+		
+		cadena = cadena.replace(new RegExp('\\n','g'),'<br>');
+		$('#textoCompletar').html(cadena);
+		
+		//Cargamos las palabras en las cajas
+		cargar();
+	}
+	
+
+//Cargamos las palabras de manera aleatoria sobre las cajas creadas
+	
+	function cargar()
+	{
+		var colocadas = [];
+		var aceptar = 0;
+		for(i=0;i<pa.length;i++)
+		{
+			if(i<10) var ix = "00"+i;
+			else if(i<100) var ix = "0"+i;
+			else var ix = i;
+					
+			while(aceptar == 0)
+			{
+				posicion = Math.floor((Math.random()*limiteHuecos));
+				if(posicion < pa.length)
+				{
+					aceptar=1;
+					for(k=0;k<colocadas.length;k++)
+					{
+						if(colocadas[k] == posicion)
+						{
+							aceptar=0;
+						}
+					}
+				}
+			}
+			colocadas[i] = posicion;
+			aceptar=0;
+			$("#cajaPalabra"+ix).html(pa[posicion]);
+			if(forma_completar != "escribir") $("#cajaPalabraFondo"+ix).html(pa[posicion]);	
+		}
+		//Definimos los eventos necesarios para cada caso
+		definir();
+	}
+
+//En función de la forma de completar, definimos las características de cada elemento
+
+	function definir()
+	{
+		$("body").addClass("unselectable");
+		
+		if(forma_completar == "clickar")
+		{
+			$("#palabras").addClass("click");
+			$("#palabrasOrdenar").addClass("click");
+			for(i=0;i<pa.length;i++)
+			{
+				if(i<10) var ix = "00"+i;
+				else if(i<100) var ix = "0"+i;
+				else var ix = i;
+						
+				$("#cajaPalabra"+ix).click(mover);
+			}
+		}
+		else if(forma_completar == "escribir")
+		{
+			$(".huecos").blur(compruebaPalabraEscribir);
+            $(".huecos").focus(borraOnFocus);
+			$("#palabras").addClass("escribir");
+			$("#palabrasOrdenar").addClass("escribir");
+		}
+	}
